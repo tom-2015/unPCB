@@ -1,0 +1,367 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="3.5">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.21022</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{002C27B1-EA92-49F5-91B3-40D441AE64F0}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <StartupObject>unPCB.My.MyApplication</StartupObject>
+    <RootNamespace>unPCB</RootNamespace>
+    <AssemblyName>unPCB</AssemblyName>
+    <MyType>WindowsForms</MyType>
+    <ApplicationIcon>auto_router_big_YKM_icon.ico</ApplicationIcon>
+    <ManifestCertificateThumbprint>5E836E1F791A9E761226EC312E7EC012A5C176B0</ManifestCertificateThumbprint>
+    <ManifestKeyFile>unPCB_1_TemporaryKey.pfx</ManifestKeyFile>
+    <GenerateManifests>true</GenerateManifests>
+    <TargetZone>LocalIntranet</TargetZone>
+    <SignManifests>true</SignManifests>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>2.0</OldToolsVersion>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>2</ApplicationRevision>
+    <ApplicationVersion>1.2.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>unPCB.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>unPCB.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Drawing" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Windows.Forms" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ClsConnections.vb" />
+    <Compile Include="ClsDevice.vb" />
+    <Compile Include="ClsImage.vb" />
+    <Compile Include="ClsLayer.vb" />
+    <Compile Include="ClsLayerObject.vb" />
+    <Compile Include="ClsNet.vb" />
+    <Compile Include="ClsPad.vb" />
+    <Compile Include="ClsPCB.vb" />
+    <Compile Include="ClsRoute.vb" />
+    <Compile Include="ClsSchematic.vb" />
+    <Compile Include="ClsText.vb" />
+    <Compile Include="ClsUndoRedo.vb" />
+    <Compile Include="DoubleBuffer.Designer.vb">
+      <DependentUpon>DoubleBuffer.vb</DependentUpon>
+    </Compile>
+    <Compile Include="DoubleBuffer.vb">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Eagle.vb" />
+    <Compile Include="FrmAbout.Designer.vb">
+      <DependentUpon>FrmAbout.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmAbout.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmAddDevice.Designer.vb">
+      <DependentUpon>FrmAddDevice.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmAddDevice.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmManualRoute.Designer.vb">
+      <DependentUpon>FrmManualRoute.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmManualRoute.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmConnections.Designer.vb">
+      <DependentUpon>FrmConnections.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmConnections.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmDevices.Designer.vb">
+      <DependentUpon>FrmDevices.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmDevices.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmLayer.Designer.vb">
+      <DependentUpon>FrmLayer.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmLayer.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmMain.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmMain.Designer.vb">
+      <DependentUpon>FrmMain.vb</DependentUpon>
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmNew.Designer.vb">
+      <DependentUpon>FrmNew.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmNew.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmProjectProperties.Designer.vb">
+      <DependentUpon>FrmProjectProperties.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmProjectProperties.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmProperties.Designer.vb">
+      <DependentUpon>FrmProperties.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmProperties.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSchematic.Designer.vb">
+      <DependentUpon>FrmSchematic.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSchematic.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FrmSettings.Designer.vb">
+      <DependentUpon>FrmSettings.vb</DependentUpon>
+    </Compile>
+    <Compile Include="FrmSettings.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Functions.vb" />
+    <Compile Include="Helpers.vb" />
+    <Compile Include="AssemblyInfo.vb" />
+    <Compile Include="Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="DoubleBuffer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>DoubleBuffer.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmAbout.resx">
+      <DependentUpon>FrmAbout.vb</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmAddDevice.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmAddDevice.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmManualRoute.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmManualRoute.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmConnections.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmConnections.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmDevices.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmDevices.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmLayer.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmLayer.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmMain.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmMain.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmNew.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmNew.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmProjectProperties.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmProjectProperties.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmProperties.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmProperties.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSchematic.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmSchematic.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FrmSettings.resx">
+      <SubType>Designer</SubType>
+      <DependentUpon>FrmSettings.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\capacitor.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\chip.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\smd_pad.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\throughhole_pad.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\ToolPointer2.gif" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\connect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\disconnect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\unconnect.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\new.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\add.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\auto_router.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\undo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\redo.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="img\connection_finished.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="doc\eagle.dtd" />
+    <None Include="img\Text.png" />
+    <BaseApplicationManifest Include="app.manifest" />
+    <None Include="unPCB_TemporaryKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="auto_router_big_AVF_icon.ico" />
+    <Content Include="auto_router_big_YKM_icon.ico" />
+    <None Include="img\split.png" />
+    <None Include="img\junction.png" />
+    <None Include="img\route.png" />
+    <None Include="Resources\save16x16.png" />
+    <None Include="Resources\open16x16.png" />
+    <None Include="Resources\new16x16.png" />
+    <None Include="Resources\undo.png" />
+    <None Include="Resources\unconnect.png" />
+    <None Include="Resources\ToolPointer2.gif" />
+    <None Include="Resources\throughhole_pad.png" />
+    <None Include="Resources\Text.png" />
+    <None Include="Resources\smd_pad.png" />
+    <None Include="Resources\resize.png" />
+    <None Include="Resources\redo.png" />
+    <None Include="Resources\move.png" />
+    <None Include="Resources\eagle.png" />
+    <None Include="Resources\disconnect.png" />
+    <None Include="Resources\connection_finished.png" />
+    <None Include="Resources\connect.png" />
+    <None Include="Resources\chip.png" />
+    <None Include="Resources\capacitor.gif" />
+    <None Include="Resources\auto_router_big.png" />
+    <None Include="Resources\auto_router.png" />
+    <None Include="Resources\add.png" />
+    <None Include="Resources\via.png" />
+    <None Include="img\via.png" />
+    <None Include="unPCB_1_TemporaryKey.pfx" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
