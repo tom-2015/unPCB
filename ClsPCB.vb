@@ -1086,11 +1086,10 @@ Public Class PCB
         Dim XMLDoc As New Xml.XmlDocument
         Dim Root As Xml.XmlElement
         Dim BinData As New Ionic.Zip.ZipFile
-        Dim XMlStream As New System.IO.StringWriter
-        Dim S As New Memorystream()
+        Dim XmlStream As New MemoryStream()
         If Not BackupSave Then m_FileName = ToFile
 
-        XMLDoc.AppendChild(XMLDoc.CreateXmlDeclaration("1.0", "UTF-16", String.Empty))
+        XMLDoc.AppendChild(XMLDoc.CreateXmlDeclaration("1.0", "UTF-8", String.Empty))
 
         Root = XMLDoc.CreateElement("pcb")
         XMLDoc.AppendChild(Root)
@@ -1098,10 +1097,15 @@ Public Class PCB
         toXML(XMLDoc, Root, BinData)
 
         'XMLDoc.Save(XMlStream)
-        XMLDoc.Save(S)
-        S.Position = 0
         'BinData.AddEntry("project.xml", XMlStream.ToString())
-        BinData.AddEntry("project.xml", S)
+
+        Dim Writer As New Xml.XmlTextWriter(XmlStream, System.Text.Encoding.UTF8)
+        Writer.Formatting = Xml.Formatting.None
+        Writer.Indentation = 0
+        XMLDoc.Save(Writer)
+        XmlStream.Position = 0
+
+        BinData.AddEntry("project.xml", XmlStream)
         SaveLibraries(BinData)
 
         RaiseEvent ProjectSaved(Me, BinData)
