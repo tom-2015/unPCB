@@ -580,7 +580,11 @@ Public Class FrmLayer
                         ElseIf e.Button = Windows.Forms.MouseButtons.Right Then
                             If Route.RoutePoints.Count > 0 Then
                                 Route.RemoveRoutePoint(Route.LastRoutePoint)
-                                m_LastRoutePointLocation = Route.LastRoutePoint.Location
+                                If Route.RoutePoints.Count > 0 Then
+                                    m_LastRoutePointLocation = Route.LastRoutePoint.Location
+                                Else
+                                    ResetDrawState(False)
+                                End If
                             End If
                         End If
                     Else

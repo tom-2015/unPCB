@@ -37,8 +37,8 @@ End Class
 Public Class UndoRedoConnect
     Inherits UndoRedoItem
 
-    Dim m_UndoConnections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
-    Dim m_RedoConnections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
+    Dim m_UndoConnections As ConnectionMatrix
+    Dim m_RedoConnections As ConnectionMatrix
     Dim m_ByAutoRouter As Boolean
 
     Public Sub New(ByVal PCB As PCB)
@@ -147,8 +147,8 @@ End Class
 Public Class UndoRedoDeleteDevice
     Inherits UndoRedoItem
 
-    Dim Connections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
-    Dim RedoConnections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
+    Dim Connections As ConnectionMatrix
+    Dim RedoConnections As ConnectionMatrix
     Dim Device As Device 'the device + device pins  + connected pads remain in the memory by this pointer but are removed from the PCB project
     'Dim m_UndoDeletePads As New Stack(Of UndoRedoDeletePad)
     'Dim m_RedoDeletePads As New Stack(Of UndoRedoDeletePad)
@@ -578,8 +578,8 @@ End Class
 Public Class UndoRedoDeletePad
     Inherits UndoRedoDeleteObject
 
-    Dim Connections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
-    Dim RedoConnections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
+    Dim Connections As ConnectionMatrix
+    Dim RedoConnections As ConnectionMatrix
     Dim DevicePin As DevicePin
     Dim m_UndoDeleteRoutes As New Stack(Of UndoRedoDeleteRoute)
     Dim m_RedoDeleteRoutes As New Stack(Of UndoRedoDeleteRoute)
@@ -856,8 +856,8 @@ End Class
 Public Class UndoRedoDeleteRoute
     Inherits UndoRedoDeleteObject
 
-    Dim Connections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
-    Dim RedoConnections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
+    Dim Connections As ConnectionMatrix
+    Dim RedoConnections As ConnectionMatrix
     Dim m_BackupConnections As Boolean
 
     Protected m_UndoRoutePointsStack As New Stack(Of UndoRedoDeleteRoutePoint)
@@ -934,8 +934,8 @@ End Class
 Public Class UndoRedoAddRoute
     Inherits UndoRedoAddObject
 
-    Dim m_UndoConnections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
-    Dim m_RedoConnections As Dictionary(Of Integer, Dictionary(Of Integer, ConnectionMatrix.ConnectionTypes))
+    Dim m_UndoConnections As ConnectionMatrix
+    Dim m_RedoConnections As ConnectionMatrix
     Protected m_UndoRoutePointsStack As New Stack(Of UndoRedoAddRoutePoint)
     Protected m_RedoRoutePointsStack As New Stack(Of UndoRedoAddRoutePoint)
 

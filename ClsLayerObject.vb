@@ -699,4 +699,10 @@ Public Class LayerObjectProperties
         End Set
     End Property
 
+    Public Overridable ReadOnly Property ID() As Integer
+        Get
+            Return m_Object.id
+        End Get
+    End Property
+
 End Class

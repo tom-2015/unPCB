@@ -44,7 +44,7 @@ Public Class PCB
     Protected m_LayerObjects As New ExtentedDictionary(Of Integer, LayerObject) 'all objects on the m_layers
     Protected m_Devices As New ExtentedDictionary(Of String, Device) 'all Devices (ICs, resistors)
     Protected m_Libraries As New List(Of Eagle.Project) 'loaded eagle m_Libraries
-    Protected m_ConnectionMatrix As New ConnectionMatrix() 'connections between pads
+    Protected m_ConnectionMatrix As New ConnectionMatrix(Me) 'connections between pads
     Protected m_UndoStack As New LinkedList(Of UndoRedoItem) 'all things that can be undone
     Protected m_RedoStack As New Stack(Of UndoRedoItem)(MAX_UNDOREDO_SIZE) 'all things that have been undone and can now be redone
     Protected m_Schematic As PCBSchematic

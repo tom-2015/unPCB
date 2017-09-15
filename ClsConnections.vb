@@ -1,3 +1,5 @@
+Imports System.IO
+
 Public Class ConnectionMatrix
     Implements ICloneable
 
@@ -11,9 +13,14 @@ Public Class ConnectionMatrix
     Protected Class PadMap
         Public Pad As Pad
         Public Index As Integer
+
+        Public Sub New(ByVal Pad As Pad, ByVal Index As Integer)
+            Me.Pad = Pad
+            Me.Index = Index
+        End Sub
     End Class
 
-    Protected m_Connections(,) As ConnectionTypes
+    Protected m_Connections() As ConnectionTypes
     Protected m_ConnectionsSize As Integer
     Protected m_ConnectionsCount As Integer
     Protected m_Pads As New Dictionary(Of Pad, PadMap)   'pads in the connection matrix Pad => PadMap(array index)
@@ -26,27 +33,36 @@ Public Class ConnectionMatrix
     Public Event ConnectionsChanged(ByVal Sender As ConnectionMatrix)
 
     Public Sub New(ByVal PCB As PCB)
-        m_ConnectionsSize = 32
-        ReDim m_Connections(0 To m_ConnectionsSize - 1, 0 To m_ConnectionsSize - 1)
+        GrowArray(32)
         m_PCB = PCB
     End Sub
 
     Public Sub New(ByVal PCB As PCB, ByVal Root As System.Xml.XmlNode, ByVal BinData As Ionic.Zip.ZipFile)
+        GrowArray(32)
         m_PCB = PCB
         fromXML(PCB, Root, BinData)
     End Sub
 
     ''' <summary>
     ''' Grows the array to fit Size elements in both X and Y
+    ''' Does not increase actual connections_count
     ''' </summary>
     ''' <param name="Size"></param>
     ''' <remarks></remarks>
     Private Sub GrowArray(ByVal Size As Integer)
-        If (Size Mod 8) > 0 Then 'align size to 64 bit
-            Size = Size + 8 - (Size Mod 8)
+        If Size > m_ConnectionsSize Then
+            'Dim Backup() As ConnectionState
+            'ReDim Backup(0 To m_Connections.Length - 1)
+            'Array.Copy(m_Connections, Backup, m_Connections.Length)
+
+            If (Size Mod 8) > 0 Then 'align size to 64 bit
+                Size = Size + 8 - (Size Mod 8)
+            End If
+            m_ConnectionsSize = Size
+
+            ReDim Preserve m_Connections(0 To m_ConnectionsSize * m_ConnectionsSize - 1)
+            'Array.Copy(Backup, m_Connections, Backup.Length)
         End If
-        m_ConnectionsSize = Size
-        ReDim Preserve m_Connections(0 To m_ConnectionsSize - 1, 0 To m_ConnectionsSize - 1)
     End Sub
 
     ''' <summary>
@@ -122,20 +138,39 @@ Public Class ConnectionMatrix
     Public Sub RemovePad(ByVal Pad As Pad)
         Dim Index As Integer = m_Pads(Pad).Index
         For i As Integer = 0 To m_ConnectionsCount - 1
-            m_Connections(i, Index) = ConnectionTypes.ConnectionTypeUnused
-            m_Connections(Index, i) = ConnectionTypes.ConnectionTypeUnused
+            m_Connection(i, Index) = ConnectionTypes.ConnectionTypeUnused
+            m_Connection(Index, i) = ConnectionTypes.ConnectionTypeUnused
         Next
-        m_Connections(Index, Index) = ConnectionTypes.ConnectionTypeUnused
+        m_Connection(Index, Index) = ConnectionTypes.ConnectionTypeUnused
         m_Index.Remove(Index)
         m_Pads.Remove(Pad)
         m_UnusedIndex.Add(Index)
 
+        While CheckLastRowIsUnused()
+
+        End While
         'For Each Row As KeyValuePair(Of Pad, Dictionary(Of Pad, ConnectionTypes)) In Connections
         '    Row.Value.Remove(Pad) 'remove pad from each column
         'Next
         'Connections.Remove(Pad) 'remove pad from the rows
         RaiseEvent ConnectionsChanged(Me)
     End Sub
+
+    ''' <summary>
+    ''' This checks if the last item in the table is unused and removes it from the unused index list
+    ''' </summary>
+    ''' <returns>false if there is no more unused index found as the last item in the table</returns>
+    ''' <remarks></remarks>
+    Private Function CheckLastRowIsUnused() As Boolean
+        For Each UnusedIndex As Integer In m_UnusedIndex
+            If UnusedIndex = m_ConnectionsCount - 1 Then
+                m_UnusedIndex.Remove(UnusedIndex)
+                m_ConnectionsCount -= 1
+                Return True
+            End If
+        Next
+        Return False
+    End Function
 
     ''' <summary>
     ''' Adds a new Pad to the connection matrix
@@ -147,7 +182,7 @@ Public Class ConnectionMatrix
 
         If m_UnusedIndex.Count > 0 Then
             Index = m_UnusedIndex.Item(0)
-            m_UnusedIndex.Remove(0)
+            m_UnusedIndex.Remove(Index)
         Else
             m_ConnectionsCount = m_ConnectionsCount + 1
             If m_ConnectionsCount = m_ConnectionsSize Then
@@ -156,15 +191,15 @@ Public Class ConnectionMatrix
         End If
 
         For i As Integer = 0 To m_ConnectionsCount - 1
-            If m_Connections(i, i) <> ConnectionTypes.ConnectionTypeUnused Then
-                m_Connections(Index, i) = ConnectionTypes.ConnectionTypeUnknown
-                m_Connections(i, Index) = ConnectionTypes.ConnectionTypeUnknown
+            If m_Connection(i, i) <> ConnectionTypes.ConnectionTypeUnused Then
+                m_Connection(Index, i) = ConnectionTypes.ConnectionTypeUnknown
+                m_Connection(i, Index) = ConnectionTypes.ConnectionTypeUnknown
             End If
         Next
 
-        m_Connections(Index, Index) = ConnectionTypes.ConnectionTypeConnected
+        m_Connection(Index, Index) = ConnectionTypes.ConnectionTypeConnected
         m_Index.Add(Index, Pad)
-
+        m_Pads.Add(Pad, New PadMap(Pad, Index))
         'Dim Row As KeyValuePair(Of Pad, Dictionary(Of Pad, ConnectionTypes))
         'Dim NewRow As New Dictionary(Of Pad, ConnectionTypes)
 
@@ -192,8 +227,8 @@ Public Class ConnectionMatrix
         'Dim Row As Dictionary(Of Pad, ConnectionTypes)
         'Dim Col As KeyValuePair(Of Pad, ConnectionTypes)
         For i As Integer = 0 To m_ConnectionsCount - 1
-            If m_Connections(Index, i) = ConnectionTypes.ConnectionTypeConnected Then
-                Net.Pads.Add(m_Index(Index))
+            If m_Connection(Index, i) = ConnectionType Then
+                Net.Pads.Add(m_Index(i))
             End If
         Next
         'Row = Connections(Pad)
@@ -248,8 +283,8 @@ Public Class ConnectionMatrix
         Dim Pad1Index As Integer = m_Pads(Pad1).Index
         Dim Pad2Index As Integer = m_Pads(Pad2).Index
 
-        m_Connections(Pad1Index, Pad1Index) = ConnectionTypes.ConnectionTypeConnected
-        m_Connections(Pad2Index, Pad2Index) = ConnectionTypes.ConnectionTypeConnected
+        m_Connection(Pad1Index, Pad1Index) = ConnectionTypes.ConnectionTypeConnected
+        m_Connection(Pad2Index, Pad2Index) = ConnectionTypes.ConnectionTypeConnected
 
         'first select all pads pad1 and pad2 are connected with
         NetConnected = GetNet(Pad1, ConnectionTypes.ConnectionTypeConnected) + GetNet(Pad2, ConnectionTypes.ConnectionTypeConnected)
@@ -257,7 +292,7 @@ Public Class ConnectionMatrix
         For Each RowPad In NetConnected.Pads 'iterate through all the connected pads and connect them with each other
             Dim Idx1 As Integer = m_Pads(RowPad).Index
             For Each ColPad In NetConnected.Pads
-                m_Connections(Idx1, m_Pads(ColPad).Index) = ConnectionTypes.ConnectionTypeConnected
+                m_Connection(Idx1, m_Pads(ColPad).Index) = ConnectionTypes.ConnectionTypeConnected
             Next
         Next
 
@@ -268,8 +303,8 @@ Public Class ConnectionMatrix
             Dim Idx1 As Integer = m_Pads(RowPad).Index
             For Each ColPad In NetConnected.Pads
                 Dim Idx2 As Integer = m_Pads(ColPad).Index
-                m_Connections(Idx1, Idx2) = ConnectionTypes.ConnectionTypeNotConnected
-                m_Connections(Idx2, Idx1) = ConnectionTypes.ConnectionTypeNotConnected
+                m_Connection(Idx1, Idx2) = ConnectionTypes.ConnectionTypeNotConnected
+                m_Connection(Idx2, Idx1) = ConnectionTypes.ConnectionTypeNotConnected
             Next
         Next
         RaiseEvent ConnectionsChanged(Me)
@@ -308,13 +343,13 @@ Public Class ConnectionMatrix
                 Dim Idx1 As Integer = m_Pads(PadConnected1).Index
                 For Each padConnected2 As Pad In NetConnected2.Pads
                     Dim Idx2 As Integer = m_Pads(padConnected2).Index
-                    m_Connections(Idx1, Idx2) = ConnectionTypes.ConnectionTypeNotConnected
-                    m_Connections(Idx2, Idx1) = ConnectionTypes.ConnectionTypeNotConnected
+                    m_Connection(Idx1, Idx2) = ConnectionTypes.ConnectionTypeNotConnected
+                    m_Connection(Idx2, Idx1) = ConnectionTypes.ConnectionTypeNotConnected
                 Next
             Next
 
-            m_Connections(m_Pads(Pad1).Index, m_Pads(Pad1).Index) = ConnectionTypes.ConnectionTypeConnected
-            m_Connections(m_Pads(Pad2).Index, m_Pads(Pad2).Index) = ConnectionTypes.ConnectionTypeConnected
+            m_Connection(m_Pads(Pad1).Index, m_Pads(Pad1).Index) = ConnectionTypes.ConnectionTypeConnected
+            m_Connection(m_Pads(Pad2).Index, m_Pads(Pad2).Index) = ConnectionTypes.ConnectionTypeConnected
 
             RaiseEvent ConnectionsChanged(Me)
         End If
@@ -342,7 +377,7 @@ Public Class ConnectionMatrix
     Public Sub NotConnectToAllPads(ByVal Pad1 As Pad)
         Dim Index As Integer = m_Pads(Pad1).Index
         For i As Integer = 0 To m_ConnectionsCount - 1
-            If m_Connections(Index, i) = ConnectionTypes.ConnectionTypeUnknown Then
+            If m_Connection(Index, i) = ConnectionTypes.ConnectionTypeUnknown Then
                 NotConnectPads(Pad1, m_Index(i))
             End If
         Next
@@ -367,12 +402,12 @@ Public Class ConnectionMatrix
         Dim Index As Integer = m_Pads(Pad).Index
 
         For i As Integer = 0 To m_ConnectionsCount - 1
-            If m_Connections(i, i) <> ConnectionTypes.ConnectionTypeUnused Then
-                m_Connections(Index, i) = ConnectionTypes.ConnectionTypeUnknown
-                m_Connections(i, Index) = ConnectionTypes.ConnectionTypeUnknown
+            If m_Connection(i, i) <> ConnectionTypes.ConnectionTypeUnused Then
+                m_Connection(Index, i) = ConnectionTypes.ConnectionTypeUnknown
+                m_Connection(i, Index) = ConnectionTypes.ConnectionTypeUnknown
             End If
         Next
-        m_Connections(Index, Index) = ConnectionTypes.ConnectionTypeConnected
+        m_Connection(Index, Index) = ConnectionTypes.ConnectionTypeConnected
 
         ''Dim Row As Dictionary(Of Pad, ConnectionTypes)
         'Dim Col As KeyValuePair(Of Pad, ConnectionTypes)
@@ -410,13 +445,13 @@ Public Class ConnectionMatrix
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Function GetNextToCheckPad(ByVal CheckWithPad As Pad, Optional ByVal OrderByDistance As Boolean = True, Optional ByVal ExcludePads As List(Of Pad) = Nothing) As Pad
-        Dim Row As Dictionary(Of Pad, ConnectionMatrix.ConnectionTypes)
+        'Dim Row As Dictionary(Of Pad, ConnectionMatrix.ConnectionTypes)
         Dim ClosestPad As Pad = Nothing
         Dim ClosestDistance As UInt32 = UInt32.MaxValue
         Dim CheckWithPadIndex As Integer = m_Pads(CheckWithPad).Index
 
         For i As Integer = 0 To m_ConnectionsCount - 1
-            If m_Connections(CheckWithPadIndex, i) = ConnectionTypes.ConnectionTypeUnknown Then
+            If m_Connection(CheckWithPadIndex, i) = ConnectionTypes.ConnectionTypeUnknown Then
                 Dim PadToCheck As Pad = m_Index(i)
                 If ExcludePads Is Nothing OrElse ExcludePads.Contains(PadToCheck) = False Then
                     If OrderByDistance Then 'check if we need to order by distance
@@ -459,7 +494,7 @@ Public Class ConnectionMatrix
     Public Function GetFirstUnconnectedPad() As Pad
         For i As Integer = 0 To m_ConnectionsCount - 1
             For j As Integer = 0 To m_ConnectionsCount - 1
-                If m_Connections(i, j) = ConnectionTypes.ConnectionTypeUnknown Then
+                If m_Connection(i, j) = ConnectionTypes.ConnectionTypeUnknown Then
                     Return m_Index(i)
                 End If
             Next
@@ -483,7 +518,7 @@ Public Class ConnectionMatrix
         Dim Count As Integer = 0
         For i As Integer = 0 To m_ConnectionsCount - 1
             For j As Integer = 0 To m_ConnectionsCount - 1
-                If m_Connections(i, j) = ConnectionTypes.ConnectionTypeUnknown Then
+                If m_Connection(i, j) = ConnectionTypes.ConnectionTypeUnknown Then
                     Count += 1
                 End If
             Next
@@ -499,12 +534,86 @@ Public Class ConnectionMatrix
     End Function
 
     ''' <summary>
-    ''' Returns total number of connections on the PCB
+    ''' Returns total number of cells in the matrix
     ''' </summary>
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Function GetTotalConnections() As Integer
         Return m_ConnectionsCount * m_ConnectionsCount
+    End Function
+
+
+    ''' <summary>
+    ''' Returns number of pads (rows in matrix)
+    ''' </summary>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public ReadOnly Property ConnectionCount() As Integer
+        Get
+            Return m_ConnectionsCount
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' Gets / sets the connection state in the one dimensional array
+    ''' </summary>
+    ''' <param name="Row"></param>
+    ''' <param name="Col"></param>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Private Property m_Connection(ByVal Row As Integer, ByVal Col As Integer) As ConnectionTypes
+        Get
+            Return m_Connections(Row * m_ConnectionsSize + Col)
+        End Get
+        Set(ByVal value As ConnectionTypes)
+            m_Connections(Row * m_ConnectionsSize + Col) = value
+        End Set
+    End Property
+
+    ''' <summary>
+    ''' Returns Connection state for row and col index
+    ''' </summary>
+    ''' <param name="Row"></param>
+    ''' <param name="Col"></param>
+    ''' <value></value>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public ReadOnly Property Connection(ByVal Row As Integer, ByVal Col As Integer) As ConnectionTypes
+        Get
+            Return m_Connections(Row * m_ConnectionsSize + Col)
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' Returns the index of a pad in the matrix
+    ''' </summary>
+    ''' <param name="Pad"></param>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Function GetPadIndex(ByVal Pad As Pad) As Integer
+        Return m_Pads(Pad).Index
+    End Function
+
+    ''' <summary>
+    ''' Return The pad at index in the matrix
+    ''' </summary>
+    ''' <param name="Index"></param>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Function GetPad(ByVal Index As Integer) As Pad
+        Return m_Index(Index)
+    End Function
+
+    ''' <summary>
+    ''' Returns if index is used
+    ''' </summary>
+    ''' <param name="Index"></param>
+    ''' <returns></returns>
+    ''' <remarks></remarks>
+    Public Function GetIndexUsed(ByVal Index As Integer) As Boolean
+        Return m_Connection(Index, Index) <> ConnectionTypes.ConnectionTypeUnused
     End Function
 
 
@@ -521,18 +630,38 @@ Public Class ConnectionMatrix
         'Dim ConnectionNode As Xml.XmlElement = Root.AppendChild(XMLDoc.CreateElement("connections"))
         Root.Attributes.Append(XMLDoc.CreateAttribute("size")).Value = m_ConnectionsSize
         Root.Attributes.Append(XMLDoc.CreateAttribute("count")).Value = m_ConnectionsCount
+        Root.Attributes.Append(XMLDoc.CreateAttribute("file")).Value = "data/connections.csv"
 
-        For i As Integer = 0 To m_ConnectionsCount - 1
-            If m_Index.ContainsKey(i) Then
-                Dim RowConnection As Xml.XmlElement = Root.AppendChild(XMLDoc.CreateElement("row"))
-                RowConnection.Attributes.Append(XMLDoc.CreateAttribute("pad_id")).Value = m_Index(i).id
-                For j As Integer = 0 To m_ConnectionsCount - 1
-                    Dim ColConnection As Xml.XmlElement = RowConnection.AppendChild(XMLDoc.CreateElement("col"))
-                    ColConnection.Attributes.Append(XMLDoc.CreateAttribute("pad_id")).Value = m_Index(j).id
-                    ColConnection.Attributes.Append(XMLDoc.CreateAttribute("con_type")).Value = m_Connections(i, j)
+        Dim Data As New System.IO.MemoryStream
+        Dim Writer As New StreamWriter(Data)
+        Writer.NewLine = vbCrLf
+
+        For Row As Integer = 0 To m_ConnectionsCount - 1
+            If m_Connection(Row, Row) <> ConnectionTypes.ConnectionTypeUnused Then
+                Writer.Write(m_Index(Row).id & ";")
+                For Col As Integer = 0 To m_ConnectionsCount - 1
+                    Writer.Write(m_Connection(Row, Col) & ";")
                 Next
+                Writer.WriteLine("")
             End If
         Next
+        Writer.Flush()
+        Data.Seek(0, SeekOrigin.Begin)
+        BinData.AddEntry("data/connections.csv", Data)
+
+
+
+        'For i As Integer = 0 To m_ConnectionsCount - 1
+        '    If m_Index.ContainsKey(i) Then
+        '        Dim RowConnection As Xml.XmlElement = Root.AppendChild(XMLDoc.CreateElement("row"))
+        '        RowConnection.Attributes.Append(XMLDoc.CreateAttribute("pad_id")).Value = m_Index(i).id
+        '        For j As Integer = 0 To m_ConnectionsCount - 1
+        '            Dim ColConnection As Xml.XmlElement = RowConnection.AppendChild(XMLDoc.CreateElement("col"))
+        '            ColConnection.Attributes.Append(XMLDoc.CreateAttribute("pad_id")).Value = m_Index(j).id
+        '            ColConnection.Attributes.Append(XMLDoc.CreateAttribute("con_type")).Value = m_Connection(i, j)
+        '        Next
+        '    End If
+        'Next
 
         'For Each Row In Connections
         '    Dim RowConnection As Xml.XmlElement = Root.AppendChild(XMLDoc.CreateElement("row"))
@@ -555,9 +684,6 @@ Public Class ConnectionMatrix
     Public Sub fromXML(ByVal PCB As PCB, ByVal Root As System.Xml.XmlNode, ByVal BinData As Ionic.Zip.ZipFile)
         Dim Size As Integer
 
-        m_ConnectionsSize = 32
-        m_ConnectionsCount = 0
-        ReDim m_Connections(0 To m_ConnectionsSize - 1, 0 To m_ConnectionsSize - 1)
         m_Index = New Dictionary(Of Integer, Pad)
         m_Pads = New Dictionary(Of Pad, PadMap)
         m_UnusedIndex = New List(Of Integer)
@@ -569,58 +695,90 @@ Public Class ConnectionMatrix
             End If
         End If
 
-
+        'faster to load connections from another file than the document xml
+        'this file consists of lines where each line is one row in the connection table
+        'first element in the line is the pad ID for that row, the rest of the elements is 
+        'PADID;1;2;1;2;0;1;2;0; ->each line is terminated with ;\r\n
         If Root.Attributes("file") IsNot Nothing Then
-            BinData.ExtractExistingFile ().
+            Dim Filename As String = Root.Attributes("file").Value
 
-            Dim f2 As New System.IO.FileStream("C:\test.bin", IO.FileMode.Open)
-            Dim r As New System.IO.StreamReader(f2)
+            For Each ZipEntry As Ionic.Zip.ZipEntry In BinData
+                If ZipEntry.FileName.ToLower() = Filename Then
+                    Dim DataStream As New MemoryStream()
+                    Dim Reader As New StreamReader(DataStream)
+                    ZipEntry.Extract(DataStream)
+                    DataStream.Seek(0, IO.SeekOrigin.Begin)
 
-            Dim Line As String = r.ReadLine()
-            Dim indx As Integer = 0
+                    Dim Line As String = Reader.ReadLine()
+                    Dim Row As Integer = 0
 
-            While Line <> ""
-                Dim Values() As String = Line.Split(";")
-                For j As Integer = 0 To Values.Length - 2
-                    Arr(indx, j) = Byte.Parse(Values(j))
-                Next
-                indx += 1
-                Line = r.ReadLine()
-            End While
+                    While Line <> ""
+                        Dim Values() As String = Line.Split(";")
+                        Dim PadID As Integer = Integer.Parse(Values(0))
+                        Dim Pad As Pad = PCB.GetLayerObject(PadID)
+                        m_Pads.Add(Pad, New PadMap(Pad, Row)) 'add pad to the map, this pad has index Row number
+                        m_Index.Add(Row, Pad) 'at this index there is pad as object
 
-            f2.Close()
+                        If Row >= m_ConnectionsCount Then GrowArray(Row)
+                        For Col As Integer = 1 To Values.Length - 2
+                            m_Connection(Row, Col - 1) = Byte.Parse(Values(Col))
+                        Next
+                        row += 1
+                        Line = Reader.ReadLine()
+                    End While
+
+                    DataStream.Close()
+
+                End If
+            Next
         Else
             'old versions load directly from xml, this was too slow so it was updated to load from CSV file in the project zip
             Dim Rows As Xml.XmlNodeList
             Dim Row As Xml.XmlNode
             Dim Cols As Xml.XmlNodeList
             Dim Col As Xml.XmlNode
-            Dim ConnectionRow As Dictionary(Of Pad, ConnectionTypes)
             Dim Pad As Pad
             Dim PadId As Integer
             Dim ConnectionType As ConnectionTypes
 
-            m_ConnectionsCount = 0
-
-
             Rows = Root.SelectNodes("row")
+            m_ConnectionsCount = Rows.Count
+            GrowArray(Rows.Count)
 
-            For Each Row In Rows
-                PadId = Row.Attributes("pad_id").Value
-                Pad = CType(PCB.GetLayerObject(PadId), Pad)
-                Cols = Row.SelectNodes("col")
+            'Dim RowIndex As Integer
 
+            If Rows.Count > 0 Then
+                Cols = Rows(0).SelectNodes("col")
+                Dim Index As Integer = 0
                 For Each Col In Cols
                     PadId = Col.Attributes("pad_id").Value
                     Pad = CType(PCB.GetLayerObject(PadId), Pad)
+                    m_Pads.Add(Pad, New PadMap(Pad, Index))
+                    m_Index.Add(Index, Pad)
+                    Index += 1
+                Next
+            End If
+
+            For Each Row In Rows
+                PadId = Integer.Parse(Row.Attributes("pad_id").Value)
+                Pad = CType(PCB.GetLayerObject(PadId), Pad)
+                Cols = Row.SelectNodes("col")
+                Dim RowIndex As Integer = m_Pads(Pad).Index
+                'm_Pads.Add(Pad, New PadMap(Pad, RowIndex))
+                'm_Index.Add(RowIndex, Pad)
+                ' m_Connection(RowIndex, RowIndex) = ConnectionTypes.ConnectionTypeConnected
+
+                For Each Col In Cols
+                    Dim ColPadId As Integer = Col.Attributes("pad_id").Value
+                    Dim ColPad As Pad = CType(PCB.GetLayerObject(ColPadId), Pad)
+                    Dim ColIndex As Integer = m_Pads(ColPad).Index
                     ConnectionType = Col.Attributes("con_type").Value
 
-                    m_ConnectionsCount = m_ConnectionsCount + 1
-                For i As inte
+                    m_Connection(RowIndex, ColIndex) = ConnectionType
 
-                        ConnectionRow.Add(Pad, ConnectionType)
-                    Next
+                    'ColIndex += 1
                 Next
+                'RowIndex += 1
             Next
         End If
 
@@ -631,7 +789,7 @@ Public Class ConnectionMatrix
         Dim Cloned As New ConnectionMatrix(m_PCB)
         Cloned.m_ConnectionsSize = m_ConnectionsSize
         Cloned.m_ConnectionsCount = m_ConnectionsCount
-        ReDim Cloned.m_Connections(0 To m_ConnectionsSize - 1, 0 To m_ConnectionsSize - 1)
+        ReDim Cloned.m_Connections(0 To m_ConnectionsSize * m_ConnectionsSize - 1)
         Array.Copy(m_Connections, Cloned.m_Connections, m_Connections.Length)
         For Each Pad As KeyValuePair(Of Pad, PadMap) In m_Pads
             Cloned.m_Pads.Add(Pad.Key, Pad.Value)
