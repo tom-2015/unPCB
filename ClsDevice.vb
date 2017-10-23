@@ -17,6 +17,23 @@ Public Class Device
 
         Public Overrides Function Compare(ByVal x As String, ByVal y As String) As Integer
             Dim xi As Integer, yi As Integer
+            Dim i As Integer = 0
+            Dim Ln As Integer = Math.Min(x.Length, y.Length)
+            Const ZeroChr As Char = "0"
+            Const NineChr As Char = "9"
+
+            'skip all non numeric characters which x and y both start with (case for a non numeric prefix)
+            While i < Ln AndAlso (x(i) < ZeroChr OrElse x(i) > NineChr) AndAlso x(i) = y(i)
+                i = i + 1
+            End While
+
+            If i = Ln Then Return 0 'equal
+
+            If i > 0 Then
+                x = x.Substring(i)
+                y = y.Substring(i)
+            End If
+
             If Integer.TryParse(x, xi) AndAlso Integer.TryParse(y, yi) Then
                 If xi < yi Then Return -1
                 If xi > yi Then Return 1
@@ -100,8 +117,9 @@ Public Class Device
             Return m_Name
         End Get
         Set(ByVal value As String)
-            RaiseEvent NameChanged(Me, m_Name, value)
+            Dim OldName As String = m_Name
             m_Name = value
+            RaiseEvent NameChanged(Me, OldName, value)
         End Set
     End Property
 
@@ -116,8 +134,9 @@ Public Class Device
             Return m_Value
         End Get
         Set(ByVal value As String)
-            RaiseEvent ValueChanged(Me, m_Value, value)
+            Dim OldValue As String = m_Value
             m_Value = value
+            RaiseEvent ValueChanged(Me, OldValue, value)
         End Set
     End Property
 
@@ -299,7 +318,7 @@ End Class
 Public Class DevicePin
     Dim m_PinConnection As Eagle.PinConnection
     Dim m_Pads As New List(Of Pad) 'pads on the PCB, usually this contains only one pad but more may be added even if the eagle device doesn't have more
-    Dim m_Device As Device
+    Dim WithEvents m_Device As Device
     Dim m_DefaultPadTypes As New Dictionary(Of String, Type) 'default type of pad object (SMD or Throughhole)
     Dim m_PCB As PCB
     Dim m_GateInstance As GateInstance 'reference to the gate instance in the schematic
@@ -462,15 +481,29 @@ Public Class DevicePin
     ''' </summary>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Function GetUniquePadName(ByVal EaglePadName As String) As String
+    Public Function GetUniquePadName(ByVal EaglePadName As String, Optional ByVal PadId As Integer = -1) As String
         Dim Name As String = m_Device.Name & "." & EaglePadName 'm_PinConnection.PadNames(Math.Min(PadIndex, m_PinConnection.PadNames.Length - 1))
         Dim NameIndex As Integer = Pads.Count()
-        While m_PCB.LayerObjectNameExists(Name)
+        While m_PCB.LayerObjectNameExists(Name, PadId)
             Name = m_Device.Name & "." & EaglePadName & "-" & NameIndex 'm_PinConnection.PadNames(Math.Min(PadIndex, m_PinConnection.PadNames.Length - 1)) & "-" & NameIndex
             NameIndex += 1
         End While
         Return Name
     End Function
+
+
+    ''' <summary>
+    ''' If the name of the device was changed we must adjust the name of all pads!
+    ''' </summary>
+    ''' <param name="Sender"></param>
+    ''' <param name="OldName"></param>
+    ''' <param name="NewName"></param>
+    ''' <remarks></remarks>
+    Private Sub m_Device_NameChanged(ByVal Sender As Device, ByVal OldName As String, ByRef NewName As String) Handles m_Device.NameChanged
+        For Each Pad As Pad In m_Pads
+            Pad.Name = GetUniquePadName(Pad.EaglePadName, Pad.id)
+        Next
+    End Sub
 
     ''' <summary>
     ''' Connects a pad to this device pin
@@ -577,6 +610,5 @@ Public Class DevicePin
             End If
         Next
     End Sub
-
 
 End Class

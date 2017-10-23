@@ -53,7 +53,7 @@ Public Class FrmConnections
                 Dim ColIndex As Integer = 0
                 For Col As Integer = 0 To TotalRows - 1
                     If ConnectionMatrix.GetIndexUsed(Col) Then
-                        Dim Connection As ConnectionState = ConnectionMatrix.Connection(Row, ColIndex)
+                        Dim Connection As ConnectionState = ConnectionMatrix.Connection(Row, Col)
                         If Connection = unPCB.ConnectionMatrix.ConnectionTypes.ConnectionTypeUnknown Then
                             DataRow(ColIndex) = "?"
                         Else
@@ -99,5 +99,15 @@ Public Class FrmConnections
 
     Private Sub FrmConnections_Load(ByVal sender As Object, ByVal e As System.EventArgs) Handles Me.Load
         RefreshData()
+    End Sub
+
+    Private Sub PCB_DeviceNameChangedEvent(ByVal Sender As PCB, ByVal Device As Device, ByVal OldName As String, ByVal NewName As String) Handles PCB.DeviceNameChangedEvent
+        RefreshData()
+    End Sub
+
+    Private Sub PCB_ObjectNameChangedEvent(ByVal Sender As PCB, ByVal LayerObject As LayerObject, ByVal OldName As String, ByVal NewName As String) Handles PCB.ObjectNameChangedEvent
+        If TypeOf (LayerObject) Is Pad Then
+            RefreshData()
+        End If
     End Sub
 End Class

@@ -127,6 +127,43 @@ Public Class FrmDevices
         Next
     End Sub
 
+    Private Sub AddDeviceNode(ByVal RootName As String, ByVal Device As Device, ByVal Root As TreeNode, Optional ByVal ExpandedNodes As List(Of String) = Nothing)
+        Dim DeviceNode As TreeNode = Root.Nodes.Add(Device.Name, GetDeviceTreeNodeName(Device))
+        DeviceNode.Tag = New DeviceTreeNode(Device)
+        DeviceNode.ContextMenuStrip = MenuConnectDevice
+        DeviceTreeNodes.Add(Device, DeviceNode)
+        If ExpandedNodes IsNot Nothing AndAlso ExpandedNodes.Contains(RootName & "/" & Device.Name) Then
+            DeviceNode.Expand()
+        End If
+        For Each DevicePin As DevicePin In Device.Pins
+            AddDevicePinNode(RootName & "/" & Device.Name, DevicePin, DeviceNode)
+        Next
+    End Sub
+
+    Private Sub AddDevicePinNode(ByVal RootName As String, ByVal DevicePin As DevicePin, ByVal DeviceNode As TreeNode, Optional ByVal ExpandedNodes As List(Of String) = Nothing)
+        Dim PinNode As TreeNode = DeviceNode.Nodes.Add(DevicePin.Name, GetPinTreeNodeName(DevicePin))
+        PinNode.Tag = New DeviceTreeNode(DevicePin)
+        PinNode.ContextMenuStrip = MenuConnectPin
+        DevicePinTreeNodes.Add(DevicePin, PinNode)
+        If ExpandedNodes IsNot Nothing AndAlso ExpandedNodes.Contains(RootName & "/" & DevicePin.Name) Then
+            PinNode.Expand()
+        End If
+        For Each Pad As Pad In DevicePin.Pads
+            AddPadNode(RootName & "/" & DevicePin.Name, Pad, PinNode, ExpandedNodes)
+        Next
+    End Sub
+
+    Private Sub AddPadNode(ByVal RootName As String, ByVal Pad As Pad, ByVal DevicePinNode As TreeNode, Optional ByVal ExpandedNodes As List(Of String) = Nothing)
+        Dim PadNode As TreeNode = DevicePinNode.Nodes.Add(Pad.Name, Pad.Name)
+        PadNode.Tag = New DeviceTreeNode(Pad)
+        PadNode.ContextMenuStrip = MenuPad
+        If ExpandedNodes IsNot Nothing AndAlso ExpandedNodes.Contains(RootName & "/" & Pad.Name) Then
+            DevicePinNode.Expand()
+        End If
+        PadTreeNodes.Add(Pad, PadNode)
+    End Sub
+
+
     Private Sub UpdateDeviceList()
         Dim Devices As ReadOnlyDictionary(Of String, Device) = PCB.Devices
         Dim ExpandedNodes As New List(Of String)
@@ -141,34 +178,10 @@ Public Class FrmDevices
         If TrvDevices.Nodes.Count > 0 Then GetExpandedNodes(TrvDevices.Nodes(0), PCB.Name, ExpandedNodes)
 
         For Each Device As KeyValuePair(Of String, Device) In Devices
-            Dim DeviceNode As TreeNode = Root.Nodes.Add(Device.Value.Name, GetDeviceTreeNodeName(Device.Value))
-            DeviceNode.Tag = New DeviceTreeNode(Device.Value)
-            DeviceNode.ContextMenuStrip = MenuConnectDevice
-            DeviceTreeNodes.Add(Device.Value, DeviceNode)
-            If ExpandedNodes.Contains(PCB.Name & "/" & Device.Value.Name) Then
-                DeviceNode.Expand()
-            End If
-            For Each DevicePin As DevicePin In Device.Value.Pins
-                Dim PinNode As TreeNode = DeviceNode.Nodes.Add(DevicePin.Name, GetPinTreeNodeName(DevicePin))
-                PinNode.Tag = New DeviceTreeNode(DevicePin)
-                PinNode.ContextMenuStrip = MenuConnectPin
-                DevicePinTreeNodes.Add(DevicePin, PinNode)
-                If ExpandedNodes.Contains(PCB.Name & "/" & Device.Value.Name & "/" & DevicePin.Name) Then
-                    PinNode.Expand()
-                End If
-                For Each Pad As Pad In DevicePin.Pads
-                    Dim PadNode As TreeNode = PinNode.Nodes.Add(Pad.Name, Pad.Name)
-                    PadNode.Tag = New DeviceTreeNode(Pad)
-                    PadNode.ContextMenuStrip = MenuPad
-                    If ExpandedNodes.Contains(PCB.Name & "/" & Device.Value.Name & "/" & DevicePin.Name & "/" & Pad.Name) Then
-                        PinNode.Expand()
-                    End If
-                    PadTreeNodes.Add(Pad, PadNode)
-                Next
-            Next
+            AddDeviceNode(PCB.Name, Device.Value, Root, ExpandedNodes)
         Next
 
-        Root.sort()
+        Root.Sort()
         Root.Expand()
 
         TrvDevices.Nodes.Clear()
@@ -204,8 +217,14 @@ Public Class FrmDevices
     End Sub
 
     Private Sub DevicePinPadAdded(ByVal Sender As DevicePin, ByVal Pad As Pad)
-        UpdateDeviceList()
-        AddHandler Pad.NameChanged, AddressOf PadNameChanged
+        'UpdateDeviceList()
+        If Not DevicePinTreeNodes.ContainsKey(Sender) Then
+            UpdateDeviceList()
+        Else
+            AddPadNode(PCB.Name & "/" & Sender.Device.Name & "/" & Sender.Name, Pad, DevicePinTreeNodes(Sender))
+            AddHandler Pad.NameChanged, AddressOf PadNameChanged
+        End If
+
     End Sub
 
     Private Sub DevicePinPadRemoved(ByVal Sender As DevicePin, ByVal Pad As Pad)
@@ -334,8 +353,8 @@ Public Class FrmDevices
             If NewName <> "" Then
                 If NewName <> DeviceTreeNode.Device.Name Then
                     If Not PCB.Devices.ContainsKey(NewName) Then
-                        DeviceTreeNode.Device.Name = NewName
                         PCB.AddUndoItem(New UndoRedoDeviceNameChange(PCB, DeviceTreeNode.Device, OldName, NewName))
+                        DeviceTreeNode.Device.Name = NewName
                         UpdateDeviceList()
                     Else
                         MsgBox("This name already exists.", MsgBoxStyle.Critical)

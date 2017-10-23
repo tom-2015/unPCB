@@ -16,7 +16,7 @@
     <ManifestKeyFile>unPCB_1_TemporaryKey.pfx</ManifestKeyFile>
     <GenerateManifests>true</GenerateManifests>
     <TargetZone>LocalIntranet</TargetZone>
-    <SignManifests>true</SignManifests>
+    <SignManifests>false</SignManifests>
     <IsWebBootstrapper>false</IsWebBootstrapper>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
@@ -37,6 +37,7 @@
     <ApplicationVersion>1.2.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -306,7 +307,6 @@
     <None Include="doc\eagle.dtd" />
     <None Include="img\Text.png" />
     <BaseApplicationManifest Include="app.manifest" />
-    <None Include="unPCB_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="auto_router_big_AVF_icon.ico" />
@@ -337,7 +337,6 @@
     <None Include="Resources\add.png" />
     <None Include="Resources\via.png" />
     <None Include="img\via.png" />
-    <None Include="unPCB_1_TemporaryKey.pfx" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">

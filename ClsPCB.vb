@@ -64,6 +64,7 @@ Public Class PCB
     Public Event ChangeCursor(ByVal Sender As PCB, ByVal Cursor As System.Windows.Forms.Cursor)
     Public Event DeviceAdded(ByVal Sender As PCB, ByVal Device As Device)
     Public Event DeviceRemoved(ByVal Sender As PCB, ByVal Device As Device)
+    Public Event DeviceNameChangedEvent(ByVal Sender As PCB, ByVal Device As Device, ByVal OldName As String, ByVal NewName As String)
     Public Event NameChanged(ByVal Sender As PCB, ByVal Name As String)
     Public Event UndoRedoAction(ByVal Sender As PCB, ByVal UndoRedoItem As UndoRedoItem, ByVal Undo As Boolean) 'raised when something is undone / redone, if undone the undo is set to true
     Public Event UndoRedoStackUpdate(ByVal Sender As PCB, ByVal UndoStack As LinkedList(Of UndoRedoItem), ByVal RedoStack As Stack(Of UndoRedoItem)) 'if the undo/redo stack was updated
@@ -74,6 +75,7 @@ Public Class PCB
     Public Event ObjectsDeselected(ByVal Sender As PCB, ByVal Objects As List(Of SelectableLayerObject))
     Public Event ObjectsHighlighted(ByVal Sender As PCB, ByVal Objects As List(Of SelectableLayerObject))
     Public Event ObjectsDeHighlighted(ByVal Sender As PCB, ByVal Objects As List(Of SelectableLayerObject))
+    Public Event ObjectNameChangedEvent(ByVal Sender As PCB, ByVal LayerObject As LayerObject, ByVal OldName As String, ByVal NewName As String)
     Public Event ObjectsLoaded(ByVal Sender As PCB, ByVal Root As Xml.XmlNode, ByVal BinData As Ionic.Zip.ZipFile) 'fired after loading of document completed and all objects have been assigned
     Public Event BackgroundImageMirrorChanged(ByVal Sender As PCB, ByVal WIndowType As WindowTypes, ByVal VerticalMirrorChanged As Boolean)
     Public Event LayerVisibilityChanged(ByVal Sender As PCB, ByVal Layer As Layer, ByVal Visible As Boolean)
@@ -548,6 +550,7 @@ Public Class PCB
             If LayerObjectNameExists(NewName) Then
                 Throw New NameExistsException("An object with this name already exists!")
             End If
+            RaiseEvent ObjectNameChangedEvent(Me, Sender, OldName, NewName)
         End If
     End Sub
 
@@ -647,6 +650,7 @@ Public Class PCB
                 m_Devices.Remove(OldName)
                 m_Devices.Add(NewName, Sender)
             End If
+            RaiseEvent DeviceNameChangedEvent(Me, Sender, OldName, NewName)
         End If
     End Sub
 
@@ -658,13 +662,18 @@ Public Class PCB
     ''' <remarks></remarks>
     Public Function GetUniqueDeviceName(ByVal Prefix As String)
         Dim Cnt As Integer = 1
+        Dim Max As Integer = 0
+        Dim DeviceNumber As Integer
         If Prefix = "" Then Prefix = "U"
         For Each DeviceName As String In m_Devices.Keys
             If Mid(DeviceName, 1, Prefix.Length) = Prefix Then
+                If Integer.TryParse(Mid(DeviceName, Prefix.Length + 1), DeviceNumber) Then
+                    Max = Math.Max(Max, DeviceNumber)
+                End If
                 Cnt += 1
             End If
         Next
-        Return Prefix & Cnt
+        Return Prefix & Math.Max(Max + 1, Cnt)
     End Function
 
     ''' <summary>

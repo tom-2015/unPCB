@@ -4,6 +4,8 @@ Public Class TreeNodeComparer
     Implements IComparer(Of TreeNode)
 
     Public Function Compare(ByVal x As System.Windows.Forms.TreeNode, ByVal y As System.Windows.Forms.TreeNode) As Integer Implements System.Collections.Generic.IComparer(Of System.Windows.Forms.TreeNode).Compare
+
+
         Return StrComp(x.Text, y.Text, CompareMethod.Text)
     End Function
 End Class

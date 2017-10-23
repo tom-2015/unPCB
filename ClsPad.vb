@@ -161,8 +161,8 @@ Public Class Pad
     Public Overrides Function Clone() As Object
         Dim Obj As Object = MyBase.Clone()
         CType(Obj, Pad).m_Name = "pad_" & CType(Obj, Pad).m_id
-        m_Routes = New List(Of Route)
-        m_DevicePin = Nothing
+        CType(Obj, Pad).m_Routes = New List(Of Route)
+        CType(Obj, Pad).m_DevicePin = Nothing
         Return Obj
     End Function
 
