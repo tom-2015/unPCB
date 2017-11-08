@@ -20,7 +20,7 @@ Public Class ConnectionMatrix
         End Sub
     End Class
 
-    Protected m_Connections() As ConnectionTypes
+    Protected m_Connections(,) As ConnectionTypes
     Protected m_ConnectionsSize As Integer
     Protected m_ConnectionsCount As Integer
     Protected m_Pads As New Dictionary(Of Pad, PadMap)   'pads in the connection matrix Pad => PadMap(array index)
@@ -58,9 +58,18 @@ Public Class ConnectionMatrix
             If (Size Mod 8) > 0 Then 'align size to 64 bit
                 Size = Size + 8 - (Size Mod 8)
             End If
-            m_ConnectionsSize = Size
 
-            ReDim Preserve m_Connections(0 To m_ConnectionsSize * m_ConnectionsSize - 1)
+            Dim NewConnections(,) As ConnectionTypes
+            ReDim NewConnections(0 To Size - 1, 0 To Size - 1)
+
+            For i As Integer = 0 To m_ConnectionsCount - 1
+                For j As Integer = 0 To m_ConnectionsCount - 1
+                    NewConnections(i, j) = m_Connections(i, j)
+                Next
+            Next
+            m_ConnectionsSize = Size
+            m_Connections = NewConnections
+            'ReDim Preserve m_Connections(0 To m_ConnectionsSize * m_ConnectionsSize - 1)
             'Array.Copy(Backup, m_Connections, Backup.Length)
         End If
     End Sub
@@ -565,10 +574,10 @@ Public Class ConnectionMatrix
     ''' <remarks></remarks>
     Private Property m_Connection(ByVal Row As Integer, ByVal Col As Integer) As ConnectionTypes
         Get
-            Return m_Connections(Row * m_ConnectionsSize + Col)
+            Return m_Connections(Row, Col)
         End Get
         Set(ByVal value As ConnectionTypes)
-            m_Connections(Row * m_ConnectionsSize + Col) = value
+            m_Connections(Row, Col) = value
         End Set
     End Property
 
@@ -582,7 +591,7 @@ Public Class ConnectionMatrix
     ''' <remarks></remarks>
     Public ReadOnly Property Connection(ByVal Row As Integer, ByVal Col As Integer) As ConnectionTypes
         Get
-            Return m_Connections(Row * m_ConnectionsSize + Col)
+            Return m_Connections(Row, Col)
         End Get
     End Property
 
@@ -723,7 +732,8 @@ Public Class ConnectionMatrix
                         For Col As Integer = 1 To Values.Length - 2
                             m_Connection(Row, Col - 1) = Byte.Parse(Values(Col))
                         Next
-                        row += 1
+                        Row += 1
+                        m_ConnectionsCount += 1
                         Line = Reader.ReadLine()
                     End While
 
@@ -789,7 +799,7 @@ Public Class ConnectionMatrix
         Dim Cloned As New ConnectionMatrix(m_PCB)
         Cloned.m_ConnectionsSize = m_ConnectionsSize
         Cloned.m_ConnectionsCount = m_ConnectionsCount
-        ReDim Cloned.m_Connections(0 To m_ConnectionsSize * m_ConnectionsSize - 1)
+        ReDim Cloned.m_Connections(0 To m_ConnectionsSize - 1, 0 To m_ConnectionsSize - 1)
         Array.Copy(m_Connections, Cloned.m_Connections, m_Connections.Length)
         For Each Pad As KeyValuePair(Of Pad, PadMap) In m_Pads
             Cloned.m_Pads.Add(Pad.Key, Pad.Value)

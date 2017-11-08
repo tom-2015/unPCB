@@ -209,11 +209,14 @@ Public Class FrmDevices
     End Sub
 
     Private Sub PadNameChanged(ByVal Sender As LayerObject, ByVal OldName As String, ByRef NewName As String)
+        Static PNewName As String
+        If PNewName = NewName Then Exit Sub
         If PadTreeNodes.ContainsKey(CType(Sender, Pad)) Then
             PadTreeNodes(CType(Sender, Pad)).Text = NewName
         Else
             UpdateDeviceList()
         End If
+        PNewName = NewName
     End Sub
 
     Private Sub DevicePinPadAdded(ByVal Sender As DevicePin, ByVal Pad As Pad)
@@ -222,6 +225,7 @@ Public Class FrmDevices
             UpdateDeviceList()
         Else
             AddPadNode(PCB.Name & "/" & Sender.Device.Name & "/" & Sender.Name, Pad, DevicePinTreeNodes(Sender))
+            DeviceTreeNodes(Sender.Device).Text = GetDeviceTreeNodeName(Sender.Device)
             AddHandler Pad.NameChanged, AddressOf PadNameChanged
         End If
 
