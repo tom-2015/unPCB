@@ -752,8 +752,8 @@ Public Class ConnectionMatrix
             Dim ConnectionType As ConnectionTypes
 
             Rows = Root.SelectNodes("row")
-            m_ConnectionsCount = Rows.Count
             GrowArray(Rows.Count)
+            m_ConnectionsCount = Rows.Count
 
             'Dim RowIndex As Integer
 
