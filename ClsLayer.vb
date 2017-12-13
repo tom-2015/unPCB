@@ -164,7 +164,13 @@ Public Class Layer
         ObjectNodes = Root.SelectNodes("./objects/object")
         For Each ObjectNode As Xml.XmlNode In ObjectNodes
             Dim Id As Integer = ObjectNode.Attributes("id").Value
-            LayerObjects.Add(PCB.GetLayerObject(Id))
+            Dim Obj As LayerObject = PCB.GetLayerObject(Id)
+            If Obj IsNot Nothing Then
+                LayerObjects.Add(Obj)
+            Else
+                Debug.Print("Invalid object id: " & Id)
+            End If
+
         Next
     End Sub
 
